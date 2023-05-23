@@ -72,7 +72,7 @@ export class AlphaStack extends TerraformStack {
         // Create DB
         const db = new PostgresDB(
             this,
-            "alpha-postgres",
+            "db-proj-alpha",
             alpha_vpc,
             serviceSecurityGroup
         );

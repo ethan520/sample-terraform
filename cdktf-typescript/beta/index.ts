@@ -63,7 +63,7 @@ export class BetaStack extends TerraformStack {
         // Create DB
         const db = new PostgresDB(
             this,
-            "beta-postgres",
+            "db-proj-beta",
             beta_vpc,
             serviceSecurityGroup
         );
