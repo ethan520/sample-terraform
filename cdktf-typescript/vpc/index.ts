@@ -1,13 +1,18 @@
-import { TerraformStack } from 'cdktf';
+import { TerraformStack, TerraformOutput, DataTerraformRemoteState } from 'cdktf';
 import { Construct } from 'constructs';
-import { AwsProvider } from '../.gen/providers/aws/provider';
-import { VpcPeeringConnection } from '../.gen/providers/aws/vpc-peering-connection';
-import { Vpc } from '../.gen/providers/aws/vpc';
-import { Subnet } from '../.gen/providers/aws/subnet';
-import { RouteTable } from '../.gen/providers/aws/route-table';
-import { RouteTableAssociation } from '../.gen/providers/aws/route-table-association';
+import { AwsProvider } from '@cdktf/provider-aws/lib/provider';
+import { VpcConstruct } from '../constructs/vpc'
+import { VpcPeeringConnection } from '@cdktf/provider-aws/lib/vpc-peering-connection';
+
+interface VpcStackProps {
+    alpha_vpcId: string | undefined
+    beta_vpcId: string | undefined
+}
 
 export class VpcStack extends TerraformStack {
+    public readonly alpha_vpcId: string | undefined;
+    public readonly beta_vpcId: string | undefined;
+
     constructor(scope: Construct, name: string) {
         super(scope, name);
 
@@ -17,91 +22,31 @@ export class VpcStack extends TerraformStack {
         });
 
         // Create VPCs
-        const alpha_vpc = new Vpc(this, 'alpha_vpc', {
+        const alpha = new VpcConstruct(this, 'alpha', {
+            vpcName: "alpha_vpc",
             cidrBlock: '10.0.0.0/16',
-            enableDnsHostnames: true,
-            enableDnsSupport: true,
+            subnet_cidrBlock: ['10.0.1.0/24', '10.0.2.0/24'],
+            availabilityZone: 'ap-southeast-1a'
         });
 
-        const beta_vpc = new Vpc(this, 'beta_vpc', {
+        const beta = new VpcConstruct(this, 'beta', {
+            vpcName: "beta_vpc",
             cidrBlock: '10.1.0.0/16',
-            enableDnsHostnames: true,
-            enableDnsSupport: true,
+            subnet_cidrBlock: ['10.1.1.0/24', '10.1.2.0/24'],
+            availabilityZone: 'ap-southeast-1a'
         });
 
-        // Create subnets in alpha_vpc
-        const alpha_app_subnet = new Subnet(this, 'alpha_app_subnet', {
-            vpcId: alpha_vpc.id,
-            cidrBlock: '10.0.254.0/24',
-            availabilityZone: 'ap-southeast-1a', // Replace with desired AZ
+        new VpcPeeringConnection(this, 'vpcPeeringAB', {
+            peerVpcId: alpha.getVpcId(),
+            vpcId: beta.getVpcId(),
         });
 
-        const alpha_database_subnet = new Subnet(this, 'alpha_database_subnet', {
-            vpcId: alpha_vpc.id,
-            cidrBlock: '10.0.255.0/24',
-            availabilityZone: 'ap-southeast-1a', // Replace with desired AZ
+        new VpcPeeringConnection(this, 'vpcPeeringBA', {
+            peerVpcId: beta.getVpcId(),
+            vpcId: alpha.getVpcId(),
         });
 
-        // Create subnets in beta_vpc
-        const beta_app_subnet = new Subnet(this, 'beta_app_subnet', {
-            vpcId: beta_vpc.id,
-            cidrBlock: '10.1.254.0/24',
-            availabilityZone: 'ap-southeast-1a', // Replace with desired AZ
-        });
-
-        const beta_database_subnet = new Subnet(this, 'beta_database_subnet', {
-            vpcId: beta_vpc.id,
-            cidrBlock: '10.1.255.0/24',
-            availabilityZone: 'ap-southeast-1a', // Replace with desired AZ
-        });
-
-        // Create VPC peering connection
-        const peeringConnection_alpha_to_beta = new VpcPeeringConnection(
-            this,
-            'vpcPeeringConnection_alpha_to_beta',
-            {
-                peerVpcId: beta_vpc.id,
-                vpcId: alpha_vpc.id,
-            }
-        );
-
-        const peeringConnection_beta_to_alpha = new VpcPeeringConnection(
-            this,
-            'vpcPeeringConnection_beta_to_alpha',
-            {
-                peerVpcId: alpha_vpc.id,
-                vpcId: beta_vpc.id,
-            }
-        );
-
-        // Create route tables
-        const routeTable1 = new RouteTable(this, 'routeTable1', {
-            vpcId: alpha_vpc.id,
-        });
-
-        const routeTable2 = new RouteTable(this, 'routeTable2', {
-            vpcId: beta_vpc.id,
-        });
-
-        // Associate subnets with route tables
-        new RouteTableAssociation(this, 'alpha_app_subnetAssociation', {
-            subnetId: alpha_app_subnet.id,
-            routeTableId: routeTable1.id,
-        });
-
-        new RouteTableAssociation(this, 'alpha_database_subnetAssociation', {
-            subnetId: alpha_database_subnet.id,
-            routeTableId: routeTable1.id,
-        });
-
-        new RouteTableAssociation(this, 'beta_app_subnetAssociation', {
-            subnetId: beta_app_subnet.id,
-            routeTableId: routeTable1.id,
-        });
-
-        new RouteTableAssociation(this, 'beta_database_subnetAssociation', {
-            subnetId: beta_database_subnet.id,
-            routeTableId: routeTable2.id,
-        });
+        this.alpha_vpcId = alpha.getVpcId();
+        this.beta_vpcId = beta.getVpcId();
     }
 }

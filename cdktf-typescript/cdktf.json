@@ -4,9 +4,12 @@
   "projectId": "63f36f7d-f2af-4403-822a-1d7c220eecd4",
   "sendCrashReports": "false",
   "terraformProviders": [
-    "hashicorp/aws@~>3.0"
+    "hashicorp/random@ ~> 3.1.0"
   ],
-  "terraformModules": [],
+  "terraformModules": [
+    "terraform-aws-modules/vpc/aws@ ~> 3.0.0",
+    "terraform-aws-modules/rds/aws@~> 3.0.0"
+  ],
   "context": {
     "excludeStackIdFromLogicalIds": "true",
     "allowSepCharsInLogicalIds": "true"
