@@ -2,6 +2,7 @@ import { Construct } from "constructs";
 import { SecurityGroup } from "@cdktf/provider-aws/lib/security-group";
 import { Vpc } from "../../.gen/modules/terraform-aws-modules/aws/vpc";
 import { Rds } from "../../.gen/modules/terraform-aws-modules/aws/rds";
+import { RandomProvider } from "../../.gen/providers/random/provider";
 import { Password } from "../../.gen/providers/random/password";
 import { Fn } from "cdktf";
 
@@ -15,6 +16,8 @@ class DefaultDB extends Construct {
       serviceSecurityGroup: SecurityGroup
     ) {
       super(scope, name);
+
+      new RandomProvider(this, "random", {});
   
       // Create a password stored in the TF State on the fly
       const password = new Password(this, `db-password`, {
@@ -63,9 +66,7 @@ class DefaultDB extends Construct {
   
         maintenanceWindow: "Mon:00:00-Mon:03:00",
         backupWindow: "03:00-06:00",
-  
-        // This is necessary due to a shortcoming in our token system to be adressed in
-        // https://github.com/hashicorp/terraform-cdk/issues/651
+
         subnetIds: vpc.databaseSubnetsOutput as unknown as any,
         vpcSecurityGroupIds: [dbSecurityGroup.id],
       });

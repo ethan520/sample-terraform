@@ -16,7 +16,7 @@ class Peering extends Construct {
     constructor(scope: Construct, name: string, props: VpcPeeringProps) {
         super(scope, name);
 
-        const peering = new VpcPeeringConnection(this, "id", {
+        const peering = new VpcPeeringConnection(this, "VpcPeering", {
             peerOwnerId: props.peerOwnerId,
             peerRegion: props.peerRegion,
             peerVpcId: props.peerVpcId,
@@ -24,14 +24,14 @@ class Peering extends Construct {
             vpcId: props.vpcId,
         });
 
-        const routeTable = new RouteTable(this, "routeTable" + props.vpcId, {
+        const routeTable = new RouteTable(this, "RouteTable", {
             tags: {
                 name: "Route Table for Peering"
             },
             vpcId: props.vpcId,  // Required
         })
 
-        new Route(this, "Route" + props.vpcId, {
+        new Route(this, "Route", {
             destinationCidrBlock: props.peerVpcId,
             routeTableId: routeTable.id,
         });

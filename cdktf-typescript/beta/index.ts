@@ -10,13 +10,13 @@ import { Rds } from '../.gen/modules/terraform-aws-modules/aws/rds';
 
 const REGION = "ap-southeast-1";
 const tags = {
-    team: "alpha",
-    owner: "project_alpha",
+    team: "beta",
+    owner: "project_beta",
 };
 
-export class AlphaStack extends TerraformStack {
-    public readonly alpha_vpcId: string;
-    public readonly alpha_rds: Rds;
+export class BetaStack extends TerraformStack {
+    public readonly beta_vpcId: string;
+    public readonly beta_rds: Rds;
 
     constructor(scope: Construct, name: string) {
         super(scope, name);
@@ -26,44 +26,35 @@ export class AlphaStack extends TerraformStack {
         });
 
         // Create VPC
-        const alpha_vpc = new Vpc(this, "alpha_vpc", {
+        const beta_vpc = new Vpc(this, "beta_vpc", {
             // Use the name of the stack
             name,
             tags,
             cidr: "10.0.0.0/16",
-            // For our use case, we run it in one az for now
-            azs: ["a"].map((i) => `${REGION}${i}`),
+            // For our case, we run it in one az for now
+            azs: ["a", "b", "c"].map((i) => `${REGION}${i}`),
             // We need three CIDR blocks as we have three availability zones
-            privateSubnets: ["10.0.1.0/24"],
-            databaseSubnets: ["10.0.2.0/24"],
+            privateSubnets: ["10.0.101.0/24"],
+            databaseSubnets: ["10.0.201.0/24"],
             createDatabaseSubnetGroup: true,
         });
 
         // Create ECS
-        const alpha_ecs = new SimpleService(this, 'alpha', alpha_vpc);
+        const beta_ecs = new SimpleService(this, 'beta', beta_vpc);
 
         const serviceSecurityGroup = new SecurityGroup(
             this,
             `service-security-group`,
             {
-                vpcId: Fn.tostring(alpha_vpc.vpcIdOutput),
+                vpcId: Fn.tostring(beta_vpc.vpcIdOutput),
                 tags,
-                ingress: [
-                    // allow incoming traffic from alpha service
+                egress: [
+                    // allow outgoing traffic to alpha service
                     {
-                        protocol: "TCP",
                         fromPort: 80,
                         toPort: 80,
-                        securityGroups: ["security-group-id-from-alpha"],
-                    },
-                ],
-                egress: [
-                    // allow outcoming traffic to beta rds
-                    {
                         protocol: "TCP",
-                        fromPort: 5432,
-                        toPort: 5432,
-                        securityGroups: ["security-group-id-from-beta"],
+                        securityGroups: ["security-group-from-alpha"],
                     },
                 ],
             }
@@ -72,17 +63,17 @@ export class AlphaStack extends TerraformStack {
         // Create DB
         const db = new PostgresDB(
             this,
-            "alpha-postgres",
-            alpha_vpc,
+            "beta-postgres",
+            beta_vpc,
             serviceSecurityGroup
         );
 
         // Create S3 bucket
-        const bucket = new PrivateS3Bucket(this, 's3_proj_alpha', {
-            bucket: 's3_proj_alpha'
+        const bucket = new PrivateS3Bucket(this, 's3_proj_beta', {
+            bucket: 's3_proj_beta'
         });
 
-        this.alpha_vpcId = alpha_vpc.vpcIdOutput;
-        this.alpha_rds = db.instance;
+        this.beta_vpcId = beta_vpc.vpcIdOutput
+        this.beta_rds = db.instance;
     }
 }

@@ -16,7 +16,7 @@ class Service extends Construct {
             containerDefinitions: JSON.stringify([
                 {
                     name: 'my-container',
-                    image: 'nginx:latest', // Replace with your desired container image
+                    image: 'nginx:latest', // Sample image for this use case
                     memory: 128,
                     portMappings: [
                         {
@@ -37,7 +37,7 @@ class Service extends Construct {
                     fromPort: 80,
                     toPort: 80,
                     protocol: 'tcp',
-                    cidrBlocks: ['0.0.0.0/0'], // Replace with your desired CIDR blocks
+                    cidrBlocks: ['0.0.0.0/0'],
                 },
             ],
         });
