@@ -33,7 +33,7 @@ export class BetaStack extends TerraformStack {
             cidr: "10.0.0.0/16",
             // For our case, we run it in one az for now
             azs: ["a"].map((i) => `${REGION}${i}`),
-            // We need three CIDR blocks as we have three availability zones
+            // We only need one CIDR block as we have one availability zone
             privateSubnets: ["10.0.101.0/24"],
             databaseSubnets: ["10.0.201.0/24"],
             createDatabaseSubnetGroup: true,

@@ -25,10 +25,10 @@ class Peering extends Construct {
         });
 
         const routeTable = new RouteTable(this, "RouteTable", {
+            vpcId: props.vpcId,
             tags: {
                 name: "Route Table for Peering"
             },
-            vpcId: props.vpcId,  // Required
         })
 
         new Route(this, "Route", {

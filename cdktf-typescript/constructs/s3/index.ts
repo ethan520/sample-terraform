@@ -2,6 +2,7 @@ import { Construct } from "constructs";
 import { S3Bucket, S3BucketConfig } from "@cdktf/provider-aws/lib/s3-bucket";
 import { S3BucketPolicy } from '@cdktf/provider-aws/lib/s3-bucket-policy';
 import { S3BucketPublicAccessBlock } from "@cdktf/provider-aws/lib/s3-bucket-public-access-block";
+import { S3BucketAcl } from "@cdktf/provider-aws/lib/s3-bucket-acl";
 
 export interface S3BucketProps {
   readonly bucket_name: string;
@@ -21,7 +22,6 @@ class DefaultS3Bucket extends Construct {
       ...s3Options,
       bucket: this.getBucketName(),
       versioning: { enabled: true },
-      acl: "private",
       serverSideEncryptionConfiguration: {
         rule: {
           applyServerSideEncryptionByDefault: {
@@ -56,6 +56,11 @@ class DefaultS3Bucket extends Construct {
       blockPublicPolicy: true,
       ignorePublicAcls: true,
       restrictPublicBuckets: true
+    });
+    new S3BucketAcl(this, 'bucketAcl', {
+      bucket: bucket.id,
+      acl: "private",
+      dependsOn: [bucket]
     });
   }
 
