@@ -66,6 +66,7 @@ class DefaultDB extends Construct {
   
         maintenanceWindow: "Mon:00:00-Mon:03:00",
         backupWindow: "03:00-06:00",
+        backupRetentionPeriod: 7,
 
         subnetIds: vpc.databaseSubnetsOutput as unknown as any,
         vpcSecurityGroupIds: [dbSecurityGroup.id],

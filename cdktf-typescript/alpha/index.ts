@@ -44,26 +44,17 @@ export class AlphaStack extends TerraformStack {
 
         const serviceSecurityGroup = new SecurityGroup(
             this,
-            `service-security-group`,
+            `alpha-service-security-group`,
             {
                 vpcId: Fn.tostring(alpha_vpc.vpcIdOutput),
                 tags,
-                ingress: [
-                    // allow incoming traffic from alpha service
-                    {
-                        protocol: "TCP",
-                        fromPort: 80,
-                        toPort: 80,
-                        securityGroups: ["security-group-id-from-alpha"],
-                    },
-                ],
                 egress: [
                     // allow outcoming traffic to beta rds
                     {
                         protocol: "TCP",
                         fromPort: 5432,
                         toPort: 5432,
-                        securityGroups: ["security-group-id-from-beta"],
+                        securityGroups: ["security-group-id-from-beta-rds"],
                     },
                 ],
             }

@@ -32,7 +32,7 @@ export class BetaStack extends TerraformStack {
             tags,
             cidr: "10.0.0.0/16",
             // For our case, we run it in one az for now
-            azs: ["a", "b", "c"].map((i) => `${REGION}${i}`),
+            azs: ["a"].map((i) => `${REGION}${i}`),
             // We need three CIDR blocks as we have three availability zones
             privateSubnets: ["10.0.101.0/24"],
             databaseSubnets: ["10.0.201.0/24"],
@@ -44,7 +44,7 @@ export class BetaStack extends TerraformStack {
 
         const serviceSecurityGroup = new SecurityGroup(
             this,
-            `service-security-group`,
+            `beta-service-security-group`,
             {
                 vpcId: Fn.tostring(beta_vpc.vpcIdOutput),
                 tags,
@@ -54,7 +54,16 @@ export class BetaStack extends TerraformStack {
                         fromPort: 80,
                         toPort: 80,
                         protocol: "TCP",
-                        securityGroups: ["security-group-from-alpha"],
+                        securityGroups: ["security-group-from-alpha-service"],
+                    },
+                ],
+                ingress: [
+                    // allow incoming traffic for alpha service to beta rds
+                    {
+                        fromPort: 5432,
+                        toPort: 5432,
+                        protocol: "TCP",
+                        securityGroups: ["security-group-from-alpha-service"],
                     },
                 ],
             }
