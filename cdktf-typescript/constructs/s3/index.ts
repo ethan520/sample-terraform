@@ -73,10 +73,5 @@ class DefaultS3Bucket extends Construct {
 }
 
 export class PrivateS3Bucket extends DefaultS3Bucket {
-  public getBucketName() {
-    return this.s3Options.bucket || this.name;
-  }
-  public getBucketArn() {
-    return `arn:aws:s3:::${this.name}`;
-  }
+  
 }
